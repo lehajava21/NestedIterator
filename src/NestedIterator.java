@@ -3,19 +3,37 @@ import java.util.*;
 public class NestedIterator implements Iterable {
 
     private Class clazz;
-    private Object[] objects;
-    private List list;
+    private Stack<Object> stack;
+    private Object next;
+    List<Object> list;
+    Iterator<Object> iter;
 
     public NestedIterator(Class clazz,Object...objects){
         this.clazz = clazz;
-        this.objects = objects;
-        list = checkObjects();
+        stack = new Stack();
+        list = Arrays.asList(objects);
+        iter = list.iterator();
     }
 
-    private List checkObjects(){
-        Stack<Object> stack = new Stack();
-        List res = new ArrayList();
-        for(Object o : objects){
+    @Override
+    public Iterator iterator() {
+        return new MyIterator();
+    }
+
+    private class MyIterator implements Iterator {
+
+        @Override
+        public boolean hasNext() {
+            Object o = null;
+            if(stack.empty() && iter.hasNext()) {
+                o = iter.next();
+            }
+            if(!stack.empty()){
+                o = stack.pop();
+            }
+            if(o == null){
+                return false;
+            }
             while(true)
             {
                 if(o.getClass().isArray()){
@@ -28,21 +46,21 @@ public class NestedIterator implements Iterable {
                     }
                 }else {
                     if(clazz.isInstance(o)){
-                        res.add(o);
+                        next = o;
+                        return true;
                     }
                 }
                 if(stack.empty()){
-                    break;
+                    return false;
                 }
                 o = stack.pop();
             }
         }
-        return res;
-    }
 
-    @Override
-    public Iterator iterator() {
-        return list.iterator();
+        @Override
+        public Object next() {
+            return next;
+        }
     }
 
 }
